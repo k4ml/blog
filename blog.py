@@ -18,6 +18,7 @@ import functools
 import markdown
 import os
 import os.path
+import sys
 import re
 import tornado.web
 import tornado.wsgi
@@ -27,17 +28,16 @@ import wsgiref.handlers
 from google.appengine.api import users
 from google.appengine.ext import db
 
-
 class Entry(db.Model):
     """A single blog entry."""
     author = db.UserProperty()
     title = db.StringProperty(required=True)
     slug = db.StringProperty(required=True)
     body = db.TextProperty(required=True)
-    markdown = db.TextProperty(required=True)
+    body_html = db.TextProperty(required=True)
+    body_format = db.StringProperty(required=True)
     published = db.DateTimeProperty(auto_now_add=True)
     updated = db.DateTimeProperty(auto_now=True)
-
 
 def administrator(method):
     """Decorate with this method to restrict to site admins."""
@@ -108,7 +108,6 @@ class FeedHandler(BaseHandler):
         self.set_header("Content-Type", "application/atom+xml")
         self.render("feed.xml", entries=entries)
 
-
 class ComposeHandler(BaseHandler):
     @administrator
     def get(self):
@@ -118,12 +117,25 @@ class ComposeHandler(BaseHandler):
 
     @administrator
     def post(self):
+        from utils import render_rst, render_plain
+
+        input_formats = {
+            'plain': render_plain,
+            'markdown': markdown.markdown,
+            'rst': render_rst,
+        }
+        format = self.get_argument('body_format', None)
+        if format not in input_formats or format is None:
+            format = 'plain'
+        f_format = input_formats[format]
+
         key = self.get_argument("key", None)
         if key:
             entry = Entry.get(key)
             entry.title = self.get_argument("title")
-            entry.body = self.get_argument("markdown")
-            entry.markdown = markdown.markdown(self.get_argument("markdown"))
+            entry.body = self.get_argument("body")
+            entry.body_html = f_format((self.get_argument("body")))
+            entry.body_format = format
         else:
             title = self.get_argument("title")
             slug = unicodedata.normalize("NFKD", title).encode(
@@ -140,8 +152,9 @@ class ComposeHandler(BaseHandler):
                 author=self.current_user,
                 title=title,
                 slug=slug,
-                body=self.get_argument("markdown"),
-                markdown=markdown.markdown(self.get_argument("markdown")),
+                body=self.get_argument("body"),
+                body_html=f_format(self.get_argument("body")),
+                body_format = format
             )
         entry.put()
         self.redirect("/entry/" + entry.slug)
@@ -163,12 +176,12 @@ class EntryModule(tornado.web.UIModule):
 
     def javascript_files(self):
         if getattr(self, "show_comments", False):
-            return ["http://disqus.com/forums/brettaylor/embed.js"]
+            return ["http://disqus.com/forums/metak4ml/embed.js"]
         return None
 
 
 settings = {
-    "blog_title": u"Bret Taylor's blog",
+    "blog_title": u"Kamal's blog",
     "template_path": os.path.join(os.path.dirname(__file__), "templates"),
     "ui_modules": {"Entry": EntryModule},
     "xsrf_cookies": True,
@@ -181,6 +194,7 @@ application = tornado.wsgi.WSGIApplication([
     (r"/entry/([^/]+)", EntryHandler),
     (r"/compose", ComposeHandler),
     (r"/about", AboutHandler),
+    (r"/test", TestHandler),
     (r"/index", tornado.web.RedirectHandler, {"url": "/archive"}),
 ], **settings)
 
