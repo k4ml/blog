@@ -1,5 +1,5 @@
-application: bret
-version: 2
+application: metak4ml
+version: 1
 runtime: python
 api_version: 1
 
@@ -17,3 +17,6 @@ handlers:
 
 - url: /.*
   script: blog.py
+
+skip_files:
+- ^\.git
