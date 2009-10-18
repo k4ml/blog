@@ -6,5 +6,5 @@
 	    query += 'url' + i + '=' + encodeURIComponent(links[i].href) + '&';
 	}
     }
-    document.write('<' + 'script type="text/javascript" src="http://disqus.com/forums/brettaylor/get_num_replies.js' + query + '"></' + 'script>');
+    document.write('<' + 'script type="text/javascript" src="http://disqus.com/forums/metak4ml/get_num_replies.js' + query + '"></' + 'script>');
 })();
