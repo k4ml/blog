@@ -195,7 +195,6 @@ application = tornado.wsgi.WSGIApplication([
     (r"/entry/([^/]+)/?", EntryHandler),
     (r"/compose", ComposeHandler),
     (r"/about", AboutHandler),
-    (r"/test", TestHandler),
     (r"/index", tornado.web.RedirectHandler, {"url": "/archive"}),
 ], **settings)
 
