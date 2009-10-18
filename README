@@ -5,3 +5,13 @@ AppEngine (http://appengine.google.com/).
 
 It is pretty special-purpose, but should be easy to modify for someone
 with knowledge of Python/Tornado.
+
+
+Requirements
+============
+
+http://www.tornadoweb.org/static/tornado-0.2.tar.gz
+
+$ wget http://www.tornadoweb.org/static/tornado-0.2.tar.gz
+$ tar xzf tornado-0.2.tar.gz
+$ mv tornado-0.2/tornado .
